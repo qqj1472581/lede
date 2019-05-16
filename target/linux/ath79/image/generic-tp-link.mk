@@ -1,83 +1,289 @@
-DEVICE_VARS += TPLINK_HWID TPLINK_HWREV TPLINK_FLASHLAYOUT TPLINK_HEADER_VERSION TPLINK_BOARD_NAME
+include ./common-tp-link.mk
 
-define rootfs_align
-$(patsubst %-256k,0x40000,$(patsubst %-128k,0x20000,$(patsubst %-64k,0x10000,$(patsubst squashfs%,0x4,$(patsubst root.%,%,$(1))))))
+define Device/tplink_archer-a7-v5
+  $(Device/tplink-safeloader-uimage)
+  ATH_SOC := qca9563
+  IMAGE_SIZE := 15104k
+  DEVICE_TITLE := TP-Link Archer A7 v5
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  TPLINK_BOARD_ID := ARCHER-A7-V5
+  BOARDNAME := ARCHER-A7-V5
+  SUPPORTED_DEVICES += archer-a7-v5
 endef
+TARGET_DEVICES += tplink_archer-a7-v5
 
-# combine kernel and rootfs into one image
-# mktplinkfw <type> <optional extra arguments to mktplinkfw binary>
-# <type> is "sysupgrade" or "factory"
-#
-# -a align the rootfs start on an <align> bytes boundary
-# -j add jffs2 end-of-filesystem markers
-# -s strip padding from end of the image
-# -X reserve <size> bytes in the firmware image (hexval prefixed with 0x)
-define Build/mktplinkfw
-	-$(STAGING_DIR_HOST)/bin/mktplinkfw \
-		-H $(TPLINK_HWID) -W $(TPLINK_HWREV) -F $(TPLINK_FLASHLAYOUT) -N OpenWrt -V $(REVISION) \
-		-m $(TPLINK_HEADER_VERSION) \
-		-k $(IMAGE_KERNEL) \
-		-r $@ \
-		-o $@.new \
-		-j -X 0x40000 \
-		-a $(call rootfs_align,$(FILESYSTEM)) \
-		$(wordlist 2,$(words $(1)),$(1)) \
-		$(if $(findstring sysupgrade,$(word 1,$(1))),-s) && mv $@.new $@ || rm -f $@
+define Device/tplink_archer-c2-v3
+  $(Device/tplink-safeloader-uimage)
+  ATH_SOC := qca9563
+  IMAGE_SIZE := 7808k
+  DEVICE_TITLE := TP-Link Archer C2 v3
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9887-ct
+  TPLINK_BOARD_ID := ARCHER-C2-V3
 endef
+TARGET_DEVICES += tplink_archer-c2-v3
 
-# mktplinkfw-combined
-#
-# -c combined image
-define Build/mktplinkfw-combined
-	$(STAGING_DIR_HOST)/bin/mktplinkfw \
-		-H $(TPLINK_HWID) -W $(TPLINK_HWREV) -F $(TPLINK_FLASHLAYOUT) -N OpenWrt -V $(REVISION) $(1) \
-		-m $(TPLINK_HEADER_VERSION) \
-		-k $@ \
-		-o $@.new \
-		-s -S \
-		-c
-	@mv $@.new $@
-endef
-
-
-define Device/tplink
-  TPLINK_HWREV := 0x1
-  TPLINK_HEADER_VERSION := 1
-  LOADER_TYPE := gz
-  KERNEL := kernel-bin | append-dtb | lzma
-  KERNEL_INITRAMFS := kernel-bin | append-dtb | lzma | tplink-v1-header
-  IMAGES := sysupgrade.bin factory.bin
-  IMAGE/sysupgrade.bin := append-rootfs | mktplinkfw sysupgrade
-  IMAGE/factory.bin := append-rootfs | mktplinkfw factory
-endef
-
-define Device/tplink-nolzma
-  $(Device/tplink)
-  LOADER_FLASH_OFFS := 0x22000
-  COMPILE := loader-$(1).gz
-  COMPILE/loader-$(1).gz := loader-okli-compile
-  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma -M 0x4f4b4c49 | loader-okli $(1)
-  KERNEL_INITRAMFS := kernel-bin | append-dtb | gzip | tplink-v1-header
-endef
-
-define Device/tplink-4m
-  $(Device/tplink-nolzma)
-  TPLINK_FLASHLAYOUT := 4M
-  IMAGE_SIZE := 3904k
-endef
-
-define Device/tplink-8m
-  $(Device/tplink-nolzma)
-  TPLINK_FLASHLAYOUT := 8M
+define Device/tplink_archer-c58-v1
+  $(Device/tplink-safeloader-uimage)
+  ATH_SOC := qca9561
   IMAGE_SIZE := 7936k
+  DEVICE_TITLE := TP-Link Archer C58 v1
+  TPLINK_BOARD_ID := ARCHER-C58-V1
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct
+  SUPPORTED_DEVICES += archer-c58-v1
 endef
+TARGET_DEVICES += tplink_archer-c58-v1
 
-define Device/tl_wr1043nd_v1
+define Device/tplink_archer-c59-v1
+  $(Device/tplink-safeloader-uimage)
+  ATH_SOC := qca9561
+  IMAGE_SIZE := 14528k
+  DEVICE_TITLE := TP-Link Archer C59 v1
+  TPLINK_BOARD_ID := ARCHER-C59-V1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca9888-ct
+  SUPPORTED_DEVICES += archer-c59-v1
+endef
+TARGET_DEVICES += tplink_archer-c59-v1
+
+define Device/tplink_archer-c6-v2
+  $(Device/tplink-safeloader-uimage)
+  ATH_SOC := qca9563
+  IMAGE_SIZE := 7808k
+  DEVICE_TITLE := TP-Link Archer C6 v2
+  TPLINK_BOARD_ID := ARCHER-C6-V2
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct
+endef
+TARGET_DEVICES += tplink_archer-c6-v2
+
+define Device/tplink_archer-c5-v1
+  $(Device/tplink-16mlzma)
+  ATH_SOC := qca9558
+  DEVICE_TITLE := TP-Link Archer C5 v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  TPLINK_HWID := 0xc5000001
+  SUPPORTED_DEVICES += archer-c5
+endef
+TARGET_DEVICES += tplink_archer-c5-v1
+
+define Device/tplink_archer-c7-v1
+  $(Device/tplink-8mlzma)
+  ATH_SOC := qca9558
+  DEVICE_TITLE := TP-Link Archer C7 v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  TPLINK_HWID := 0x75000001
+endef
+TARGET_DEVICES += tplink_archer-c7-v1
+
+define Device/tplink_archer-c7-v2
+  $(Device/tplink-16mlzma)
+  ATH_SOC := qca9558
+  DEVICE_TITLE := TP-Link Archer C7 v2
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  TPLINK_HWID := 0xc7000002
+  IMAGES += factory-us.bin factory-eu.bin
+  IMAGE/factory-us.bin := append-rootfs | mktplinkfw factory -C US
+  IMAGE/factory-eu.bin := append-rootfs | mktplinkfw factory -C EU
+endef
+TARGET_DEVICES += tplink_archer-c7-v2
+
+define Device/tplink_archer-c7-v4
+  $(Device/tplink-safeloader-uimage)
+  ATH_SOC := qca9563
+  IMAGE_SIZE := 15104k
+  DEVICE_TITLE := TP-Link Archer C7 v4
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  TPLINK_BOARD_ID := ARCHER-C7-V4
+  BOARDNAME := ARCHER-C7-V4
+  SUPPORTED_DEVICES += archer-c7-v4
+endef
+TARGET_DEVICES += tplink_archer-c7-v4
+
+define Device/tplink_archer-c7-v5
+  $(Device/tplink-safeloader-uimage)
+  ATH_SOC := qca9563
+  IMAGE_SIZE := 15360k
+  DEVICE_TITLE := TP-Link Archer C7 v5
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  TPLINK_BOARD_ID := ARCHER-C7-V5
+  BOARDNAME := ARCHER-C7-V5
+  SUPPORTED_DEVICES += archer-c7-v5
+endef
+TARGET_DEVICES += tplink_archer-c7-v5
+
+define Device/tplink_cpe210-v2
+  $(Device/tplink-safeloader)
+  ATH_SOC := qca9533
+  IMAGE_SIZE := 7680k
+  DEVICE_TITLE := TP-Link CPE210 v2
+  TPLINK_BOARD_ID := CPE210V2
+  DEVICE_PACKAGES := rssileds
+  LOADER_TYPE := elf
+  SUPPORTED_DEVICES += cpe210-v2
+endef
+TARGET_DEVICES += tplink_cpe210-v2
+
+define Device/tplink_cpe210-v3
+  $(Device/tplink-safeloader)
+  ATH_SOC := qca9533
+  IMAGE_SIZE := 7680k
+  DEVICE_TITLE := TP-Link CPE210 v3
+  DEVICE_PACKAGES := rssileds
+  TPLINK_BOARD_ID := CPE210V3
+  LOADER_TYPE := elf
+  SUPPORTED_DEVICES += cpe210-v3
+endef
+TARGET_DEVICES += tplink_cpe210-v3
+
+define Device/tplink_re350k-v1
+  $(Device/tplink-safeloader)
+  ATH_SOC := qca9558
+  IMAGE_SIZE := 13760k
+  DEVICE_TITLE := TP-Link RE350K v1
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  TPLINK_BOARD_ID := RE350K-V1
+  TPLINK_HWID := 0x0
+  TPLINK_HWREV := 0
+endef
+TARGET_DEVICES += tplink_re350k-v1
+
+define Device/tplink_re450-v2
+  $(Device/tplink-safeloader)
+  ATH_SOC := qca9563
+  IMAGE_SIZE := 6016k
+  DEVICE_TITLE := TP-Link RE450 v2
+  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  TPLINK_HWID := 0x0
+  TPLINK_HWREV := 0
+  TPLINK_BOARD_ID := RE450-V2
+  LOADER_TYPE := elf
+endef
+TARGET_DEVICES += tplink_re450-v2
+
+define Device/tplink_tl-wdr3600
+  $(Device/tplink-8mlzma)
+  ATH_SOC := ar9344
+  DEVICE_TITLE := TP-Link TL-WDR3600
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  TPLINK_HWID := 0x36000001
+  SUPPORTED_DEVICES += tl-wdr4300
+endef
+TARGET_DEVICES += tplink_tl-wdr3600
+
+define Device/tplink_tl-wdr4300
+  $(Device/tplink-8mlzma)
+  ATH_SOC := ar9344
+  DEVICE_TITLE := TP-Link TL-WDR4300
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  TPLINK_HWID := 0x43000001
+  SUPPORTED_DEVICES += tl-wdr4300
+endef
+TARGET_DEVICES += tplink_tl-wdr4300
+
+define Device/tplink_tl-wdr4900-v2
+  $(Device/tplink-8mlzma)
+  ATH_SOC := qca9558
+  DEVICE_TITLE := TP-Link TL-WDR4900 v2
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  TPLINK_HWID := 0x49000002
+endef
+TARGET_DEVICES += tplink_tl-wdr4900-v2
+
+define Device/tplink_tl-wr1043nd-v1
   $(Device/tplink-8m)
   ATH_SOC := ar9132
-  DEVICE_TITLE := TP-LINK TL-WR1043N/ND v1
+  DEVICE_TITLE := TP-Link TL-WR1043N/ND v1
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
   TPLINK_HWID := 0x10430001
-  SUPPORTED_DEVICES := tplink,tl-wr1043nd-v1 tl-wr1043nd
+  SUPPORTED_DEVICES += tl-wr1043nd
 endef
-#TARGET_DEVICES += tl_wr1043nd_v1
+TARGET_DEVICES += tplink_tl-wr1043nd-v1
+
+define Device/tplink_tl-wr810n-v1
+  $(Device/tplink-8mlzma)
+  ATH_SOC := qca9531
+  DEVICE_TITLE := TP-Link TL-WR810N v1
+  TPLINK_HWID := 0x8100001
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += tplink_tl-wr810n-v1
+
+define Device/tplink_tl-wr810n-v2
+  $(Device/tplink-8mlzma)
+  ATH_SOC := qca9533
+  DEVICE_TITLE := TP-Link TL-WR810N v2
+  TPLINK_HWID := 0x8100002
+endef
+TARGET_DEVICES += tplink_tl-wr810n-v2
+
+define Device/tplink_tl-wr710n-v1
+  $(Device/tplink-8mlzma)
+  ATH_SOC := ar9331
+  DEVICE_TITLE := TP-Link TL-WR710N v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-chipidea2 kmod-usb-ledtrig-usbport
+  TPLINK_HWID := 0x07100001
+  SUPPORTED_DEVICES += tl-wr710n
+endef
+TARGET_DEVICES += tplink_tl-wr710n-v1
+
+define Device/tplink_tl-wr842n-v1
+  $(Device/tplink-8m)
+  ATH_SOC := ar7241
+  DEVICE_TITLE := TP-Link TL-WR842N/ND v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  TPLINK_HWID := 0x8420001
+endef
+TARGET_DEVICES += tplink_tl-wr842n-v1
+
+define Device/tplink_tl-wr842n-v2
+  $(Device/tplink-8mlzma)
+  ATH_SOC := ar9341
+  DEVICE_TITLE := TP-Link TL-WR842N/ND v2
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  TPLINK_HWID := 0x8420002
+  SUPPORTED_DEVICES += tl-wr842n-v2
+endef
+TARGET_DEVICES += tplink_tl-wr842n-v2
+
+define Device/tplink_tl-wr1043nd-v2
+  $(Device/tplink-8mlzma)
+  ATH_SOC := qca9558
+  DEVICE_TITLE := TP-Link TL-WR1043N/ND v2
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  TPLINK_HWID := 0x10430002
+  SUPPORTED_DEVICES += tl-wr1043nd-v2
+endef
+TARGET_DEVICES += tplink_tl-wr1043nd-v2
+
+define Device/tplink_tl-wr1043nd-v3
+  $(Device/tplink-8mlzma)
+  ATH_SOC := qca9558
+  DEVICE_TITLE := TP-Link TL-WR1043N/ND v3
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  TPLINK_HWID := 0x10430003
+  SUPPORTED_DEVICES += tl-wr1043nd-v3
+endef
+TARGET_DEVICES += tplink_tl-wr1043nd-v3
+
+define Device/tplink_tl-wr1043nd-v4
+  $(Device/tplink-safeloader)
+  ATH_SOC := qca9563
+  IMAGE_SIZE := 15552k
+  DEVICE_TITLE := TP-Link TL-WR1043N/ND v4
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  TPLINK_HWID := 0x10430004
+  TPLINK_BOARD_ID := TLWR1043NDV4
+  SUPPORTED_DEVICES += tl-wr1043nd-v4
+endef
+TARGET_DEVICES += tplink_tl-wr1043nd-v4
+
+define Device/tplink_tl-wr2543-v1
+  $(Device/tplink-8mlzma)
+  ATH_SOC := ar7242
+  DEVICE_TITLE := TP-Link TL-WR2543N/ND v1
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  TPLINK_HWID := 0x25430001
+  IMAGE/sysupgrade.bin := append-rootfs | mktplinkfw sysupgrade -v 3.13.99 | \
+    append-metadata | check-size $$$$(IMAGE_SIZE)
+  IMAGE/factory.bin := append-rootfs | mktplinkfw factory -v 3.13.99
+  SUPPORTED_DEVICES += tl-wr2543-v1
+endef
+TARGET_DEVICES += tplink_tl-wr2543-v1
